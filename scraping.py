@@ -12,6 +12,7 @@ def scrape_all():
     browser = Browser('chrome', **executable_path, headless=True)
 
     news_title, news_paragraph = mars_news(browser)
+    hemisphere_image_urls = mars_hemispheres(browser)
 
     # Run all scraping functions and store results in a dictionary
     data = {
@@ -19,6 +20,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemispheres": hemisphere_image_urls,
         "last_modified": dt.datetime.now()
     }
 
@@ -55,6 +57,53 @@ def mars_news(browser):
 
     return news_title, news_p
 
+def mars_hemispheres(browser):
+
+    # Scrape Mars Hemispheres
+    # Visit the mars hemispheres site
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    # Parse the resulting html with soup
+    html = browser.html
+    html_soup = soup(html, 'html.parser')
+
+    # Add try/except for error handling
+    try:
+        # 2. Create a list to hold the images and titles.
+        hemisphere_image_urls = []
+
+        # 3. Write code to retrieve the image urls and titles for each hemisphere.
+        # First, get a list of all of the hemispheres
+
+        links = browser.find_by_css('a.product-item img')
+        #print(len(links))
+
+        # Next, loop through those links, click the link, find the sample anchor, return the href
+        for i in range(len(links)):
+            hemisphere = {}
+    
+            # We have to find the elements on each loop to avoid a stale element exception
+            browser.find_by_css('a.product-item img')[i].click()
+    
+            # Next, we find the Sample image anchor tag and extract the href
+            sample_elem = browser.links.find_by_text('Sample').first
+            hemisphere['img_url'] = sample_elem['href']
+    
+            # Get Hemisphere title
+            hemisphere['title'] = browser.find_by_css('h2.title').text
+    
+            # Append hemisphere object to list
+            hemisphere_image_urls.append(hemisphere)
+
+            # Finally, we navigate backwards
+            browser.back()
+
+    except AttributeError:
+        return None
+    
+    # 4. Print the list that holds the dictionary of each image url and title.
+    return hemisphere_image_urls
 
 def featured_image(browser):
     # Visit URL
